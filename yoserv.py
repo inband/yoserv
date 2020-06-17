@@ -15,6 +15,9 @@ TCP = socket.SOCK_STREAM
 # port
 PORT = 5000
 
+# socket timeout
+SOCKET_TIMEOUT = 30
+
 # create socket
 s = socket.socket(IPV4, TCP)
 print(s)
@@ -29,6 +32,10 @@ s.listen(5)
 
 # conn is child/client socket
 def active_connection(conn):
+    try:
+        data = conn.recv(1024)
+    except socket.timeout:
+        return
     data = conn.recv(1024)
     if data == b'QUIT\r\n':
         conn.send(b'Bye!\r\n')
@@ -37,6 +44,7 @@ def active_connection(conn):
 
 def client_child(conn, addr):
     print(f'{addr} connected')
+    conn.settimeout(SOCKET_TIMEOUT)
     active_connection(conn)
     conn.shutdown(socket.SHUT_RDWR)
     conn.close
