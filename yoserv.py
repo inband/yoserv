@@ -30,17 +30,32 @@ print(s)
 # listen connect
 s.listen(5)
 
+#MEIS
+def login(data):
+    pass
+
 # conn is child/client socket
 def active_connection(conn):
-    try:
-        data = conn.recv(1024)
-    except socket.timeout:
-        return
-    data = conn.recv(1024)
-    if data == b'QUIT\r\n':
-        conn.send(b'Bye!\r\n')
-        return
-    
+    while True:
+        try:
+            data = conn.recv(1024)
+        except socket.timeout:
+            return
+        if data == b'NOYO\r\n':    #QUIT
+            conn.send(b'200 OK BYE\r\n')
+            return
+        elif data[:4] == b'MEIS':   #LOGIN USER ie 'MEIS name'
+            user = data[5:-2]
+            print(f'{user.decode()} logged in.')
+            conn.send(b'200 USER OK\r\n')
+        elif data == b'YOSR\r\n':      #LIST USERS
+            pass
+        elif data[:4] == b'YOYO':       #QUEUE YO for someone
+            pass
+        elif data == b'YOLO\r\n':       #collect YO for me
+            pass
+        else:
+            conn.send(b'400 BAD COMMAND\r\n')
 
 def client_child(conn, addr):
     print(f'{addr} connected')
