@@ -1,7 +1,7 @@
 import os
 import socket
 import sys
-
+import sqlite3
 
 # host
 HOST = ''
@@ -31,8 +31,17 @@ print(s)
 s.listen(5)
 
 #MEIS
-def login(data):
-    pass
+def login(user, soc):
+    conn = sqlite3.connect('yoserv.db')
+    c = conn.cursor()
+    c.execute('SELECT pass FROM subscribers WHERE user=(?)', (user,))
+    password = c.fetchone()[0]
+    if password:
+        soc.send(b'200 PASS\r\n')
+        data = soc.recv(1024)
+        if data[:-2].decode() == password:
+            soc.send(b'200 PASS OK\r\n')
+    print(c.fetchone())
 
 # conn is child/client socket
 def active_connection(conn):
@@ -46,6 +55,7 @@ def active_connection(conn):
             return
         elif data[:4] == b'MEIS':   #LOGIN USER ie 'MEIS name'
             user = data[5:-2]
+            login(user.decode(), conn)
             print(f'{user.decode()} logged in.')
             conn.send(b'200 USER OK\r\n')
         elif data == b'YOSR\r\n':      #LIST USERS
